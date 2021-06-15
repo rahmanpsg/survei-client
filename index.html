@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>Survei Kepuasan Masyarakat</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="author" content="colorlib.com">
+	<!-- MATERIAL DESIGN ICONIC FONT -->
+	<link rel="stylesheet" href="fonts/material-design-iconic-font/css/material-design-iconic-font.css">
+	<link rel="stylesheet" href="fonts/themify-icons/css/themify-icons.css">
+	<link rel="stylesheet" href="vendor/vue/css/vue-form-wizard.min.css">
+	<link rel="stylesheet" href="vendor/vue/css/vue.select.css">
+	<!-- STYLE CSS -->
+	<link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+	<div class="wrapper" id="app">
+		<div class="image-holder">
+			<img src="images/layanan-skm.png">
+		</div>
+		<div class="form-body">
+			<div class="form-header">
+				<a href="#">{{tag_header}}</a>
+				<h3>{{header}}</h3>
+			</div>
+
+			<form-wizard ref="wizard" id="wizard" color="#345bf7" error-color="#e4bd37">
+				<tab-content title="Data responden" icon="ti-user" :before-change="validateResponden">
+					<form ref="formResponden" :model="formResponden">
+						<div class="form-row">
+							<label for="nama">
+								Nama:
+							</label>
+							<div class="form-holder">
+								<input type="text" v-model="formResponden.nama" class="form-control"
+									placeholder="Masukkan Nama" autocomplete="off">
+							</div>
+						</div>
+						<div class="form-row">
+							<label for="umur">
+								Umur:
+							</label>
+							<div class="form-holder">
+								<input type="text" v-model="formResponden.umur" @keypress="isNumber($event)"
+									class="form-control" placeholder="Masukkan Umur" autocomplete="off">
+							</div>
+						</div>
+						<div class="form-row">
+							<label for="desa">
+								Desa:
+							</label>
+							<div class="form-holder">
+								<v-select :options="data_ds" v-model="formResponden.desa" :reduce="desa => desa.id"
+									label="desa" placeholder="- Pilih Desa -" autocomplete="off">
+								</v-select>
+							</div>
+						</div>
+						<div class="form-row">
+							<label for="jenis_kelamin">
+								Jenis Kelamin:
+							</label>
+							<div class="form-holder">
+								<v-select :options="['Laki-laki','Perempuan']" v-model="formResponden.jenis_kelamin"
+									placeholder="- Pilih Jenis Kelamin -" autocomplete="off">
+								</v-select>
+							</div>
+						</div>
+						<div class="form-row">
+							<label for="">
+								Pendidikan Terakhir:
+							</label>
+							<div class="form-holder">
+								<v-select :options="data_pt" v-model="formResponden.pendidikan_terakhir"
+									placeholder="- Pilih Pendidikan Terakhir -" autocomplete="off">
+								</v-select>
+							</div>
+						</div>
+						<div class="form-row">
+							<label for="pekerjaan">
+								Pekerjaan:
+							</label>
+							<div class="form-holder">
+								<v-select :options="data_pk" v-model="formResponden.pekerjaan"
+									placeholder="- Pilih Pekerjaan -" autocomplete="off">
+								</v-select>
+							</div>
+						</div>
+						<label v-if="responden_error" class="error">{{error_msg}}</label>
+					</form>
+				</tab-content>
+				<tab-content title="Survei" icon="ti-book" :before-change="validateSurvei">
+					<form :model="formSurvei">
+						<ol>
+							<div v-for="data in data_pertanyaan">
+								<div v-if="show_pertanyaan == data.no">
+									<li :value="data.no">
+										<div style="margin-bottom:5px">
+											{{data.pertanyaan}}?
+										</div>
+										<div v-for="(jawaban, index) in JSON.parse(data.jawaban)"
+											class="checkbox-circle" style="margin-bottom: 10px;">
+											<label>
+												<input type="radio" :name="data.no" :value="index+1"
+													@change="survei_error=false"
+													v-model="formSurvei[data.no]">{{jawaban}}
+												<span class="checkmark"></span>
+											</label>
+										</div>
+									</li>
+								</div>
+							</div>
+						</ol>
+						<label v-if="survei_error" class="error">{{error_msg}}</label>
+					</form>
+				</tab-content>
+				<tab-content title="Saran & Masukan" icon="ti-check">
+					<textarea class="form-control" rows="30" v-model="formResponden.saran"></textarea>
+					*Kosongkan jika tidak ingin diisi
+				</tab-content>
+				<template slot="footer" slot-scope="props">
+					<div class="wizard-footer-left">
+						<wizard-button v-if="props.activeTabIndex == 1 && show_pertanyaan > 1 && !props.isLastStep"
+							@click.native="show_pertanyaan--; survei_error=false;" :style="props.fillButtonStyle">
+							Kembali</wizard-button>
+
+						<wizard-button v-else-if="props.activeTabIndex > 0 && !props.isLastStep"
+							@click.native="props.prevTab()" :style="props.fillButtonStyle">Kembali
+						</wizard-button>
+					</div>
+					<div class="wizard-footer-right">
+						<wizard-button v-if="!props.isLastStep" @click.native="props.nextTab()"
+							class="wizard-footer-right" :style="props.fillButtonStyle">
+							Selanjutnya
+						</wizard-button>
+
+						<wizard-button v-else @click.native="onComplete" class="wizard-footer-right finish-button"
+							:style="props.fillButtonStyle">Kirim
+						</wizard-button>
+					</div>
+				</template>
+			</form-wizard>
+		</div>
+	</div>
+
+	<script src="js/jquery-3.3.1.min.js"></script>
+	<!-- JQUERY STEP -->
+	<script src="js/jquery.steps.js"></script>
+	<!-- VUE -->
+	<!-- <script src="vendor/vue/js/vue-dev.js"></script> -->
+	<script src="vendor/vue/js/vue.js"></script>
+	<script src="vendor/vue/js/vuew-form-wizard.js"></script>
+	<script src="vendor/vue/js/vue-select.js"></script>
+
+	<script src="vendor/vue/js/vue-swal.js"></script>
+
+	<script src="js/main.js"></script>
+</body>
+
+</html>
